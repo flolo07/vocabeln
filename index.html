@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vokabeltrainer (EN ⇄ DE)</title>
+  <style>
+    :root{
+      --bg: #0b0f17;
+      --panel:#111a2b;
+      --panel2:#0f1626;
+      --text:#e9eefc;
+      --muted:#9fb0d0;
+      --accent:#7aa2ff;
+      --good:#30d158;
+      --bad:#ff453a;
+      --warn:#ffd60a;
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 700px at 15% 15%, #1b2a55 0%, var(--bg) 55%) fixed;
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px;
+    }
+    .app{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 18px;
+    }
+    @media (max-width: 920px){
+      .app{grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding: 18px 18px 0 18px;
+    }
+    h1{
+      margin: 0 0 6px 0;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+    .main{
+      padding: 18px;
+    }
+    .flash{
+      background: linear-gradient(180deg, rgba(122,162,255,.18), rgba(17,26,43,.12));
+      border: 1px solid rgba(122,162,255,.28);
+      border-radius: var(--radius);
+      padding: 22px;
+      min-height: 260px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      position: relative;
+      user-select:none;
+      cursor:pointer;
+    }
+    .badge{
+      position:absolute;
+      top:14px;
+      right:14px;
+      font-size:12px;
+      color: var(--muted);
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.08);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+    .lang{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+    .big{
+      font-size: clamp(26px, 3.2vw, 40px);
+      line-height: 1.1;
+      margin: 12px 0 10px 0;
+      font-weight: 750;
+      letter-spacing: .2px;
+      word-break: break-word;
+    }
+    .hint{
+      color: var(--muted);
+      font-size: 13px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .hint kbd{
+      background: rgba(0,0,0,.28);
+      border: 1px solid rgba(255,255,255,.10);
+      border-bottom-color: rgba(255,255,255,.16);
+      padding: 3px 7px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .controls{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+    }
+    button{
+      appearance:none;
+      border:none;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 650;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease;
+    }
+    button:hover{ background: rgba(255,255,255,.12); }
+    button:active{ transform: translateY(1px); }
+
+    .primary{ background: rgba(122,162,255,.22); border-color: rgba(122,162,255,.35);}
+    .good{ background: rgba(48,209,88,.20); border-color: rgba(48,209,88,.35); }
+    .bad{ background: rgba(255,69,58,.18); border-color: rgba(255,69,58,.35); }
+
+    .panel{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+    }
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background: rgba(255,255,255,.35);
+      display:inline-block;
+    }
+    .dot.good{ background: var(--good); border:none;}
+    .dot.bad{ background: var(--bad); border:none;}
+    .dot.warn{ background: var(--warn); border:none;}
+
+    .small{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .list{
+      max-height: 260px;
+      overflow:auto;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+    .item{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-size: 13px;
+    }
+    .item:last-child{ border-bottom:none; }
+    .item b{ font-weight: 750; }
+    .item span{ color: var(--muted); }
+
+    .tog{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    input[type="checkbox"]{ transform: scale(1.1); }
+    input[type="number"]{
+      width: 80px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.2);
+      color: var(--text);
+    }
+    .search{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      outline:none;
+    }
+    .footerNote{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT: Flashcard -->
+    <div class="card">
+      <header>
+        <h1>Vokabeltrainer</h1>
+        <div class="sub">Klick auf die Karte = umdrehen. Tastatur: <kbd>Space</kbd> drehen · <kbd>→</kbd> nächste · <kbd>1</kbd> kannte ich · <kbd>2</kbd> nicht gekannt</div>
+      </header>
+      <div class="main">
+        <div id="flash" class="flash" tabindex="0" aria-label="Flashcard">
+          <div class="badge" id="posBadge">1 / 1</div>
+          <div>
+            <div class="lang" id="langLine">EN → DE</div>
+            <div class="big" id="bigWord">…</div>
+          </div>
+          <div class="hint">
+            <div><span style="opacity:.9">Tipp:</span> erst raten, dann drehen.</div>
+            <div><kbd>Space</kbd> flip · <kbd>→</kbd> next</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="primary" id="btnFlip">Umdrehen</button>
+          <button id="btnPrev">← Zurück</button>
+          <button id="btnNext">Nächste →</button>
+          <button class="good" id="btnKnow">Kannte ich ✓</button>
+          <button class="bad" id="btnDont">Nicht gekannt ✗</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Stats & Settings -->
+    <div class="card">
+      <div class="panel">
+        <div class="row">
+          <div class="pill"><span class="dot warn"></span><span id="statSeen">Gesehen: 0</span></div>
+          <div class="pill"><span class="dot good"></span><span id="statKnow">Kannte: 0</span></div>
+          <div class="pill"><span class="dot bad"></span><span id="statDont">Nicht: 0</span></div>
+        </div>
+
+        <div class="row">
+          <div class="tog">
+            <label><input type="checkbox" id="chkReverse"> Startseite Deutsch (DE → EN)</label>
+            <label><input type="checkbox" id="chkShuffle"> Shuffle</label>
+            <label><input type="checkbox" id="chkAutoplay"> Autoplay</label>
+          </div>
+          <label> Sekunden:
+            <input type="number" id="numSeconds" min="2" max="60" value="6">
+          </label>
+        </div>
+
+        <input class="search" id="search" placeholder="Suche (z.B. 'proud' oder 'Hymne')…" />
+
+        <div class="list" id="list"></div>
+
+        <div class="row">
+          <button id="btnReset">Fortschritt zurücksetzen</button>
+          <button id="btnExport">Stats export (JSON)</button>
+        </div>
+
+        <div class="footerNote">
+          Deine Wörter sind unten im Code als Liste gespeichert. Du kannst sie easy erweitern.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** ====== 1) DEINE VOKABELN ======
+ *  Format: { en: "...", de: "...", note?: "optional" }
+ *  Ich hab deine korrigierte Liste eingetragen (inkl. fixes).
+ */
+const WORDS = [
+  { en: "captive", de: "Gefangener / Gefangene" },
+  { en: "debts", de: "Schulden" },
+  { en: "the past", de: "Vergangenheit" },
+  { en: "reunification", de: "Wiedervereinigung" },
+  { en: "judicial", de: "richterlich / die Justiz betreffend" },
+  { en: "separation", de: "Trennung" },
+  { en: "creeds", de: "Glaubensbekenntnisse" },
+  { en: "abolition", de: "Abschaffung" },
+  { en: "to achieve", de: "erreichen / zustande bringen" },
+  { en: "descendant", de: "Nachkomme" },
+  { en: "sobering", de: "ernüchternd" },
+  { en: "proud of", de: "stolz auf" },
+  { en: "deep-seated", de: "tief verwurzelt / tief sitzend" },
+  { en: "anthem", de: "Hymne" },
+  { en: "to fulfill", de: "erfüllen" },
+  { en: "opportunity", de: "Möglichkeit / Gelegenheit" },
+  { en: "to coin (a term)", de: "prägen (einen Begriff prägen)" },
+  { en: "achievement", de: "Erfolg / Leistung" },
+  { en: "to recognize", de: "wiedererkennen / anerkennen" }
+];
+
+/** ====== 2) STATE + STORAGE ====== */
+const STORE_KEY = "vokabeltrainer_v1";
+const defaultState = () => ({
+  idx: 0,
+  flipped: false,
+  reverse: false,
+  shuffle: false,
+  autoplay: false,
+  seconds: 6,
+  order: WORDS.map((_, i) => i),
+  stats: {} // { [i]: { seen: n, know: n, dont: n } }
+});
+
+let state = loadState();
+let autoplayTimer = null;
+
+/** ====== 3) HELPERS ====== */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultState();
+    const s = JSON.parse(raw);
+    // minimal validation
+    if(!s.order || s.order.length !== WORDS.length) s.order = WORDS.map((_,i)=>i);
+    if(!s.stats) s.stats = {};
+    return { ...defaultState(), ...s };
+  }catch(e){
+    return defaultState();
+  }
+}
+function saveState(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+function curWordIndex(){
+  return state.order[state.idx] ?? 0;
+}
+function curWord(){
+  return WORDS[curWordIndex()];
+}
+function ensureStat(i){
+  if(!state.stats[i]) state.stats[i] = { seen: 0, know: 0, dont: 0 };
+  return state.stats[i];
+}
+function shuffleArray(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** ====== 4) UI ====== */
+const elFlash = document.getElementById("flash");
+const elBig = document.getElementById("bigWord");
+const elLang = document.getElementById("langLine");
+const elPos = document.getElementById("posBadge");
+
+const elSeen = document.getElementById("statSeen");
+const elKnow = document.getElementById("statKnow");
+const elDont = document.getElementById("statDont");
+
+const elReverse = document.getElementById("chkReverse");
+const elShuffle = document.getElementById("chkShuffle");
+const elAutoplay = document.getElementById("chkAutoplay");
+const elSeconds = document.getElementById("numSeconds");
+const elSearch = document.getElementById("search");
+const elList = document.getElementById("list");
+
+document.getElementById("btnFlip").addEventListener("click", flip);
+document.getElementById("btnPrev").addEventListener("click", prev);
+document.getElementById("btnNext").addEventListener("click", next);
+document.getElementById("btnKnow").addEventListener("click", () => mark(true));
+document.getElementById("btnDont").addEventListener("click", () => mark(false));
+elFlash.addEventListener("click", flip);
+
+elReverse.addEventListener("change", () => {
+  state.reverse = elReverse.checked;
+  state.flipped = false;
+  saveState(); render();
+});
+elShuffle.addEventListener("change", () => {
+  state.shuffle = elShuffle.checked;
+  if(state.shuffle){
+    state.order = shuffleArray(WORDS.map((_,i)=>i));
+    state.idx = 0;
+  }else{
+    state.order = WORDS.map((_,i)=>i);
+    state.idx = 0;
+  }
+  state.flipped = false;
+  saveState(); render();
+});
+elAutoplay.addEventListener("change", () => {
+  state.autoplay = elAutoplay.checked;
+  saveState();
+  setupAutoplay();
+});
+elSeconds.addEventListener("change", () => {
+  const v = Math.max(2, Math.min(60, Number(elSeconds.value || 6)));
+  state.seconds = v;
+  elSeconds.value = v;
+  saveState();
+  setupAutoplay();
+});
+elSearch.addEventListener("input", renderList);
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  if(confirm("Wirklich alles zurücksetzen? (Stats + Reihenfolge)")){
+    state = defaultState();
+    saveState();
+    setupAutoplay();
+    render();
+  }
+});
+document.getElementById("btnExport").addEventListener("click", () => {
+  const payload = {
+    createdAt: new Date().toISOString(),
+    words: WORDS,
+    state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "vokabeltrainer_export.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === " "){ e.preventDefault(); flip(); }
+  if(e.key === "ArrowRight"){ next(); }
+  if(e.key === "ArrowLeft"){ prev(); }
+  if(e.key === "1"){ mark(true); }
+  if(e.key === "2"){ mark(false); }
+});
+
+/** ====== 5) Actions ====== */
+function flip(){
+  state.flipped = !state.flipped;
+  saveState(); render();
+}
+function next(){
+  state.idx = (state.idx + 1) % state.order.length;
+  state.flipped = false;
+  bumpSeen();
+  saveState(); render();
+}
+function prev(){
+  state.idx = (state.idx - 1 + state.order.length) % state.order.length;
+  state.flipped = false;
+  bumpSeen();
+  saveState(); render();
+}
+function mark(know){
+  const i = curWordIndex();
+  const st = ensureStat(i);
+  if(know) st.know += 1; else st.dont += 1;
+  st.seen += 1; // zählt auch als gesehen
+  // Nach Markierung direkt weiter – fühlt sich wie echtes Lernen an
+  next();
+}
+function bumpSeen(){
+  const i = curWordIndex();
+  const st = ensureStat(i);
+  st.seen += 1;
+}
+function setupAutoplay(){
+  if(autoplayTimer) clearInterval(autoplayTimer);
+  autoplayTimer = null;
+  if(state.autoplay){
+    autoplayTimer = setInterval(() => {
+      // Autoplay: erst drehen, dann weiter
+      if(!state.flipped) flip();
+      else next();
+    }, state.seconds * 1000);
+  }
+}
+
+/** ====== 6) Render ====== */
+function render(){
+  elReverse.checked = state.reverse;
+  elShuffle.checked = state.shuffle;
+  elAutoplay.checked = state.autoplay;
+  elSeconds.value = state.seconds;
+
+  const w = curWord();
+  elPos.textContent = `${state.idx + 1} / ${state.order.length}`;
+
+  const frontIsDE = state.reverse;
+  // Was ist vorne/hinten?
+  const front = frontIsDE ? w.de : w.en;
+  const back  = frontIsDE ? w.en : w.de;
+
+  elLang.textContent = frontIsDE ? "DE → EN" : "EN → DE";
+  elBig.textContent = state.flipped ? back : front;
+
+  // Stats total
+  let seen=0, know=0, dont=0;
+  for(const k of Object.keys(state.stats)){
+    const s = state.stats[k];
+    seen += (s.seen||0);
+    know += (s.know||0);
+    dont += (s.dont||0);
+  }
+  elSeen.textContent = `Gesehen: ${seen}`;
+  elKnow.textContent = `Kannte: ${know}`;
+  elDont.textContent = `Nicht: ${dont}`;
+
+  renderList();
+}
+function renderList(){
+  const q = (elSearch.value || "").trim().toLowerCase();
+  const rows = WORDS.map((w, i) => {
+    const s = state.stats[i] || {seen:0, know:0, dont:0};
+    const text = `${w.en} ${w.de}`.toLowerCase();
+    if(q && !text.includes(q)) return null;
+    return { i, w, s };
+  }).filter(Boolean);
+
+  elList.innerHTML = rows.map(({i,w,s}) => {
+    const score = (s.know || 0) - (s.dont || 0);
+    const tag = score >= 2 ? "✓ läuft" : (score <= -1 ? "✗ üben" : "• ok");
+    return `
+      <div class="item" data-i="${i}">
+        <div><b>${escapeHtml(w.en)}</b><br><span>${escapeHtml(w.de)}</span></div>
+        <div style="text-align:right">
+          <span>${tag}</span><br>
+          <span>seen ${s.seen||0}</span>
+        </div>
+      </div>
+    `;
+  }).join("") || `<div class="item"><span>Keine Treffer.</span></div>`;
+
+  // click on list item -> jump
+  [...elList.querySelectorAll(".item[data-i]")].forEach(el => {
+    el.addEventListener("click", () => {
+      const i = Number(el.getAttribute("data-i"));
+      const pos = state.order.indexOf(i);
+      if(pos !== -1){
+        state.idx = pos;
+        state.flipped = false;
+        bumpSeen();
+        saveState();
+        render();
+      }
+    });
+  });
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+/** init */
+bumpSeen();
+setupAutoplay();
+render();
+</script>
+</body>
+</html>
